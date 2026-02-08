@@ -359,10 +359,14 @@ void editName()
             {
                 fputs(line, fp2);
             }
-            if (skip)
+            if (skip && strncmp(line, "Name:", 5) == 0)
             {
-                fprintf(fp2, "Name:%s\n", changeName);
+                fprintf(fp2, "Name: %s\n", changeName);
                 skip = 0;
+            }
+            else if (skip)
+            {
+                fputs(line, fp2);
             }
         }
         fclose(fp1);
@@ -377,14 +381,14 @@ int editMarks()
     char filename[6];
     char line[256];
     char arrGrade[] = {'A', 'B', 'C', 'D', 'E', 'F'};
-    int changeMarks, verifyRoll, updatedMarks, roll;
+    int verifyRoll, roll;
     char targetSubject[100];
 
     char newTargetSubject[100];
     int i = 0, flag = 0;
     int subjectLen = 0;
     int editSubjectLen = 0, correctLen = 0;
-    int editedMarks, rollFound = 0, subjectFound = 0;
+    int editedMarks, rollFound = 0;
 
     printf("Enter roll number of the student to update: ");
     scanf("%d", &verifyRoll);
@@ -397,8 +401,8 @@ int editMarks()
     printf("enter the name of the subject whose marks you want to edit...\n");
     fgets(targetSubject, sizeof(targetSubject), stdin);
     targetSubject[strcspn(targetSubject, "\n")] = '\0';
-    i = 0;
-    // getchar();
+    
+    // Normalize target subject name (remove spaces, convert to lowercase)
     int j = 0;
     for (i = 0; targetSubject[i] != '\0'; i++)
     {
@@ -409,9 +413,10 @@ int editMarks()
     subjectLen = j;
 
     int skip = 0;
-    for (int i = 0; i < 6; i++)
+    for (int gradeIdx = 0; gradeIdx < 6; gradeIdx++)
     {
-        snprintf(filename, sizeof(filename), "%c.txt", arrGrade[i]);
+        snprintf(filename, sizeof(filename), "%c.txt", arrGrade[gradeIdx]);
+        remove("temp.txt");
         FILE *fp1 = fopen(filename, "r");
         if (!fp1)
             continue;
@@ -422,138 +427,124 @@ int editMarks()
             fclose(fp1);
             continue;
         }
+        
         rollFound = 0;
         flag = 0;
-        remove("temp.txt");
+        skip = 0;
+        
         while (fgets(line, sizeof(line), fp1))
         {
             editSubjectLen = 0;
             correctLen = 0;
-            i = 0;
+            int k = 0;
+            
             if (flag == 0)
             {
-
-                if ((sscanf(line, "Roll: %d\n", &roll) == 1 && roll == verifyRoll) && flag == 0)
+                // Check if this is the target roll number
+                if (sscanf(line, "Roll: %d", &roll) == 1 && roll == verifyRoll)
                 {
                     fputs(line, fp2);
                     skip = 1;
                     rollFound = 1;
-
                     continue;
                 }
 
+                // Copy lines that are not part of the target student's record
                 if (!skip && rollFound && strncmp(line, "------------------------------------", 36) != 0)
-
                 {
                     fputs(line, fp2);
                 }
 
-                if (skip == 1 && (strncmp(line, "Grade:", 6) == 0))
+                // If we reach Grade line and haven't found the subject, subject doesn't exist
+                if (skip == 1 && strncmp(line, "Grade:", 6) == 0)
                 {
-
                     if (flag == 0)
                     {
-                        printf("Subject not found...please check the spelling!");
+                        printf("Subject not found...please check the spelling!\n");
                     }
                     fputs(line, fp2);
                     skip = 0;
                     continue;
                 }
-                if (skip)
+                
+                // Process subject lines when we're inside the target student's record
+                if (skip == 1)
                 {
-                    while (line[i] != ':')
+                    // Extract subject name from the line (before the colon)
+                    char lineSubject[100] = {0};
+                    int lineSubjIdx = 0;
+                    
+                    while (line[k] != ':' && line[k] != '\0' && lineSubjIdx < 99)
                     {
-                        if (isalpha(line[i]))
+                        if (!isspace(line[k]))
                         {
-                            editSubjectLen++;
-                            i++;
+                            lineSubject[lineSubjIdx++] = tolower(line[k]);
                         }
-                        else if (isspace(line[i]))
-                        {
-                            i++;
-                        }
-                        else
-                        {
-                            editSubjectLen++;
-                            i++;
-                        }
+                        k++;
                     }
+                    lineSubject[lineSubjIdx] = '\0';
+                    editSubjectLen = lineSubjIdx;
+                    
+                    // Check if subject names match
                     if (editSubjectLen == subjectLen)
                     {
-                        for (int i = 0; i < subjectLen; i++)
+                        int match = 1;
+                        for (int m = 0; m < subjectLen; m++)
                         {
-
-                            if (!isspace(line[i]))
+                            if (lineSubject[m] != newTargetSubject[m])
                             {
-                                if (tolower(line[i]) == newTargetSubject[i])
-                                {
-                                    correctLen++;
-                                    continue;
-                                }
-                                else
-                                {
-                                    // skip =
-                                    i = 0;
-                                    fputs(line, fp2);
-                                    correctLen = 0;
-                                    continue;
-                                }
-                            }
-                            else if (isspace(line[i]))
-                            {
-
-                                continue;
-                            }
-                            else
-                            {
-                                printf("some error took place...run the code again");
+                                match = 0;
+                                break;
                             }
                         }
+                        
+                        if (match == 1)
+                        {
+                            printf("enter the edited marks: ");
+                            scanf("%d", &editedMarks);
+                            getchar();
+                            fprintf(fp2, "%s : %d\n", targetSubject, editedMarks);
+                            flag = 1;
+                            skip = 0;
+                            continue;
+                        }
                     }
-                    else if (editSubjectLen != subjectLen)
-                    {
-                        i = 0;
-                        fputs(line, fp2);
-                        continue;
-                    }
-                    if (correctLen == subjectLen)
-                    {
-
-                        printf("enter the edited marks: ");
-                        scanf("%d", &editedMarks);
-                        getchar();
-                        fprintf(fp2, "%s : %d\n", targetSubject, editedMarks);
-                        flag = 1;
-                        skip = 0;
-                        continue;
-                        // break;
-                    }
-                    else if (correctLen != subjectLen)
-                    {
-                        fputs(line, fp2);
-                    }
+                    
+                    // If we reach here, this is not the subject we're looking for
+                    fputs(line, fp2);
                 }
             }
-
-            if (flag == 1)
+            else
             {
+                // If we've already edited the marks, just copy the rest
                 fputs(line, fp2);
             }
         }
+        
         fclose(fp1);
         fclose(fp2);
+        
         if (flag == 1 && rollFound == 1)
         {
             remove(filename);
             rename("temp.txt", filename);
+            printf("Marks updated successfully!\n");
+            return verifyRoll;
         }
         else
         {
             remove("temp.txt");
         }
     }
+    
+    if (!rollFound)
+    {
+        printf("Student with roll number %d not found!\n", verifyRoll);
+    }
+    
     return verifyRoll;
 }
+
 int editGrade(int targetRoll)
 {
     char filename[6];
