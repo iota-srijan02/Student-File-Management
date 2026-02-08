@@ -455,7 +455,7 @@ int editMarks()
                     fputs(line, fp2);
                 }
 
-                // If we reach Grade line and still we couldnot find the subject, then it simplydoesn't exist
+                // If we reach Grade line and still we couldnot find the subject, then it simply doesn't exist
                 if (skip == 1 && strncmp(line, "Grade:", 6) == 0)
                 {
                     if (flag == 0)
@@ -750,14 +750,13 @@ void updateStudent()
             editName();
             break;
         case '3':
-
             targetRoll = editMarks();
             editGrade(targetRoll);
             break;
         default:
             printf("Invalid Choice\n");
         }
-        printf("Do you want to edit again?(y/n):");
+        printf("Do you want to edit another student's data?(y/n): ");
         scanf(" %c", &choice);
     } while (choice == 'y' || choice == 'Y');
 }
@@ -769,94 +768,105 @@ int main()
     char choice = 'y';
     char choice2;
     int pass = 1669;
+    int continueProgram = 1;
 
-    printf("Press 'R' to read existing students, 'W' to write new students, 'D' to delete the data of the student, 'U' to update student's data : ");
-    scanf(" %c", &ult_choice);
-    if (ult_choice == 'W' || ult_choice == 'w')
+    while (continueProgram)
     {
+        printf("\n=== MAIN MENU ===\n");
+        printf("Press 'R' to read existing students\n");
+        printf("Press 'W' to write new students\n");
+        printf("Press 'D' to delete the data of the student\n");
+        printf("Press 'U' to update student's data\n");
+        printf("Press 'Q' to quit\n");
+        printf("Enter your choice: ");
+        scanf(" %c", &ult_choice);
 
-        while (choice == 'y' || choice == 'Y')
+        if (ult_choice == 'Q' || ult_choice == 'q')
         {
-            add_student(&s);
-            countSubject(&s);
-            allocateSubjects(&s);
-            getchar();
-            nameSubject(&s);
-            // myResult(&s);
-            int total = myResult(&s);
-            myGradeFromTotal(&s, total);
-            s.grade = toupper(s.grade);
-            write_student(&s);
-            freeStudent(&s);
-            printf("do you want to enter more student details-->:(y/n)");
-            scanf(" %c", &choice);
+            printf("Program ended.\n");
+            continueProgram = 0;
+            break;
         }
-
-        printf("Do you want to read student files? (y/n): ");
-        scanf(" %c", &choice2);
-
-        while (choice2 == 'y' || choice2 == 'Y')
+        else if (ult_choice == 'W' || ult_choice == 'w')
         {
-            char grade;
-            char filename[6];
+            choice = 'y';
+            while (choice == 'y' || choice == 'Y')
+            {
+                add_student(&s);
+                countSubject(&s);
+                allocateSubjects(&s);
+                getchar();
+                nameSubject(&s);
+                int total = myResult(&s);
+                myGradeFromTotal(&s, total);
+                s.grade = toupper(s.grade);
+                write_student(&s);
+                freeStudent(&s);
+                printf("do you want to enter more student details-->:(y/n)");
+                scanf(" %c", &choice);
+            }
 
-            printf("Enter grade file to read (A/B/C/D/E/F): ");
-            scanf(" %c", &grade);
-            grade = toupper(grade);
-
-            snprintf(filename, sizeof(filename), "%c.txt", grade);
-
-            read_txt_file(filename);
-
-            printf("Read another file? (y/n): ");
+            printf("Do you want to read student files? (y/n): ");
             scanf(" %c", &choice2);
+
+            while (choice2 == 'y' || choice2 == 'Y')
+            {
+                char grade;
+                char filename[6];
+
+                printf("Enter grade file to read (A/B/C/D/E/F): ");
+                scanf(" %c", &grade);
+                grade = toupper(grade);
+
+                snprintf(filename, sizeof(filename), "%c.txt", grade);
+
+                read_txt_file(filename);
+
+                printf("Read another file? (y/n): ");
+                scanf(" %c", &choice2);
+            }
         }
-    }
-    else if (ult_choice == 'r' || ult_choice == 'R')
-    {
-        choice2 = 'y';
-        while (choice2 == 'y' || choice2 == 'Y')
+        else if (ult_choice == 'r' || ult_choice == 'R')
         {
-            char grade;
-            char filename[6];
+            choice2 = 'y';
+            while (choice2 == 'y' || choice2 == 'Y')
+            {
+                char grade;
+                char filename[6];
 
-            printf("Enter grade file to read (A/B/C/D/E/F): ");
-            scanf(" %c", &grade);
-            grade = toupper(grade);
-            snprintf(filename, sizeof(filename), "%c.txt", grade);
+                printf("Enter grade file to read (A/B/C/D/E/F): ");
+                scanf(" %c", &grade);
+                grade = toupper(grade);
+                snprintf(filename, sizeof(filename), "%c.txt", grade);
 
-            read_txt_file(filename);
+                read_txt_file(filename);
 
-            printf("Read another file? (y/n): ");
-            scanf(" %c", &choice2);
+                printf("Read another file? (y/n): ");
+                scanf(" %c", &choice2);
+            }
         }
-    }
-    else if (ult_choice == 'D' || ult_choice == 'd')
-    {
-
-        int enteredPass;
-        printf("enter your id: ");
-        scanf("%d", &enteredPass);
-        if (enteredPass == pass)
+        else if (ult_choice == 'D' || ult_choice == 'd')
         {
-            deleteStudent();
+            int enteredPass;
+            printf("enter your id: ");
+            scanf("%d", &enteredPass);
+            if (enteredPass == pass)
+            {
+                deleteStudent();
+            }
+            else
+            {
+                printf("invalid password, try again!\n");
+            }
         }
-
+        else if (ult_choice == 'u' || ult_choice == 'U')
+        {
+            updateStudent();
+        }
         else
         {
-            printf("invalid password, try again!                                                                              ");
+            printf("invalid choice is entered!!\n");
         }
-        printf("Program ended.\n");
-    }
-    else if (ult_choice == 'u' || ult_choice == 'U')
-    {
-        updateStudent();
-        printf("Program ended... ");
-    }
-
-    else
-    {
-        printf("invalid choice is entered!!");
     }
     return 0;
 }
