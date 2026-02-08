@@ -244,17 +244,36 @@ void deleteStudent()
         }
 
         int skip = 0;
+        int studentStarted = 0;
 
         while (fgets(line, sizeof(line), fp1))
         {
-            if (sscanf(line, "Roll: %d", &roll) == 1 && roll == targetRoll)
-                skip = 1;
-
-            if (!skip)
+            // Check if this is the start of a student record
+            if (strncmp(line, "------------------------------------", 36) == 0)
+            {
+                studentStarted = 1;
                 fputs(line, fp2);
+                continue;
+            }
 
-            if (strncmp(line, "Grade:", 6) == 0)
+            // Check if this is the target roll number
+            if (sscanf(line, "Roll: %d", &roll) == 1 && roll == targetRoll)
+            {
+                skip = 1;
+                continue;
+            }
+
+            // If we're not skipping this student, write the line
+            if (!skip)
+            {
+                fputs(line, fp2);
+            }
+
+            // If we reach the separator after skipping a student, reset skip
+            if (skip && strncmp(line, "------------------------------------", 36) == 0)
+            {
                 skip = 0;
+            }
         }
 
         fclose(fp1);
@@ -869,4 +888,3 @@ int main()
         }
     }
     return 0;
-}
