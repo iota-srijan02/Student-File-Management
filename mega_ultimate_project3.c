@@ -49,10 +49,10 @@ void allocateSubjects(struct student *s)
 
 void nameSubject(struct student *s)
 {
-    // s->subject_name=malloc(s->subject_count*sizeof(int)); this is not required since the we have already allocated the memory in allocateSubjects()
+    
     for (int i = 0; i < s->subject_count; i++)
     {
-        // s->subject_name[i]=malloc(name_len); this line is not required since I have already memory in allocateSubject
+    
         printf("Enter subject %d name: ", i + 1);
         fgets(s->subject_name[i], name_len, stdin);
         s->subject_name[i][strcspn(s->subject_name[i], "\n")] = '\0';
@@ -100,7 +100,7 @@ int myResult(const struct student *s)
 
     free(temp);
     return sum;
-    // return will remain below free(temp) since function terminates after returning sum
+    
 }
 
 void myGradeFromTotal(struct student *s, int total)
@@ -449,13 +449,13 @@ int editMarks()
                     continue;
                 }
 
-                // Copy lines that are not part of the target student's record
+                //this is used to copy the part of the file that is not part of the target student's record
                 if (!skip && rollFound && strncmp(line, "------------------------------------", 36) != 0)
                 {
                     fputs(line, fp2);
                 }
 
-                // If we reach Grade line and haven't found the subject, subject doesn't exist
+                // If we reach Grade line and still we couldnot find the subject, then it simplydoesn't exist
                 if (skip == 1 && strncmp(line, "Grade:", 6) == 0)
                 {
                     if (flag == 0)
@@ -467,11 +467,11 @@ int editMarks()
                     continue;
                 }
                 
-                // Process subject lines when we're inside the target student's record
+                //parse subject lines when we're inside the target student's data
                 if (skip == 1)
                 {
                     // Extract subject name from the line (before the colon)
-                    char lineSubject[100] = {0};
+                    char lineSubject[100] = {0}; // this initializes every element of the array to 0...
                     int lineSubjIdx = 0;
                     
                     while (line[k] != ':' && line[k] != '\0' && lineSubjIdx < 99)
@@ -485,7 +485,7 @@ int editMarks()
                     lineSubject[lineSubjIdx] = '\0';
                     editSubjectLen = lineSubjIdx;
                     
-                    // Check if subject names match
+                    // Check if subject names match or not
                     if (editSubjectLen == subjectLen)
                     {
                         int match = 1;
@@ -553,7 +553,7 @@ int editGrade(int targetRoll)
     char oldGrade = 0, updatedGrade = 0;
     int roll;
 
-    /* ---------------- STEP 1: find old grade ---------------- */
+    // step 1: find old grade
     for (int i = 0; i < 6; i++)
     {
         snprintf(filename, sizeof(filename), "%c.txt", arrGrade[i]);
@@ -580,7 +580,7 @@ int editGrade(int targetRoll)
         return 0;
     }
 
-    /* ---------------- STEP 2: recalc grade ---------------- */
+    // step 2: recalc grade 
     int marks[20], count = 0;
     int skip = 0;
 
@@ -618,7 +618,7 @@ int editGrade(int targetRoll)
 
     fclose(fp);
 
-    /* sort marks descending */
+    /* sort marks in descending order */
     for (int i = 0; i < count - 1; i++)
         for (int j = i + 1; j < count; j++)
             if (marks[j] > marks[i])
@@ -648,7 +648,7 @@ int editGrade(int targetRoll)
     else
         updatedGrade = 'F';
 
-    /* ---------------- STEP 3: if grade same → update only ---------------- */
+    // step 3: if grade same → update only 
     if (oldGrade == updatedGrade)
     {
         snprintf(filename, sizeof(filename), "%c.txt", oldGrade);
@@ -677,7 +677,7 @@ int editGrade(int targetRoll)
         return 1;
     }
 
-    /* ---------------- STEP 4: move student to new grade file ---------------- */
+    // step 4: move student to new grade file 
     FILE *fpRemain = fopen("temp.txt", "w");
     FILE *fpBlock = fopen("temp2.txt", "w");
 
