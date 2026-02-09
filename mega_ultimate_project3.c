@@ -17,6 +17,7 @@ struct student
     char **subject_name;
     float percentage;
     char grade;
+    int *is_mandaory;
 };
 void countSubject(struct student *s)
 {
@@ -49,16 +50,81 @@ void allocateSubjects(struct student *s)
 
 void nameSubject(struct student *s)
 {
-    
+
     for (int i = 0; i < s->subject_count; i++)
     {
-    
+
         printf("Enter subject %d name: ", i + 1);
         fgets(s->subject_name[i], name_len, stdin);
         s->subject_name[i][strcspn(s->subject_name[i], "\n")] = '\0';
     }
 }
+void chooseSubject(struct student *s)
+{
+    int numOfSubjects = s->subject_count;
+    int mandSubj;
+    char targetSubj[100];
+    char newTargetSubj[100];
+    int subjectLen;
+    char choice;
+    printf("enter the number of subjects you wanna mandate...\n");
+    scanf("%d",&mandSubj);
+    getchar();
+    for (int i = 0; i < mandSubj; i++)
+    {
+        printf("enter the name of the subject you want to mandate: ");
+        fgets(targetSubj, sizeof(targetSubj), stdin);
+        targetSubj[strcspn(targetSubj, "\n")] = '\0';
+        int indx = 0;
+        int lineSubjIdx = 0;
+        int lowerSubjLen;
+        int j = 0;
+        int k = 0;
+        for (k = 0; targetSubj[k] != '\0'; i++)
+        {
+            if (!isspace(targetSubj[i]))
+                newTargetSubj[j++] = tolower(targetSubj[k]);
+        }
+        newTargetSubj[j] = '\0';
+        subjectLen = j;
+        char lowerSubject[100];
 
+        for ( j = 0; j < s->subject_count; j++)
+        {
+            while (s->subject_name[i][indx] == '\0')
+            {
+
+                if (!isspace(s->subject_name[i][indx]))
+                {
+                    lowerSubject[lineSubjIdx++] = tolower(s->subject_name[i][indx]);
+                }
+                indx++;
+            }
+            lowerSubject[indx] = '\0';
+            lowerSubjLen = indx;
+            int match = 0;
+
+            if (lowerSubjLen == subjectLen)
+            {
+                match = 1;
+                for (int m = 0; m < subjectLen; m++)
+                {
+                    if (lowerSubject[m] != newTargetSubj[m])
+                    {
+                        match = 0;
+                        printf("we could not find the subject...");
+                        break;
+                    }
+                }
+                if (match == 1)
+                {
+                    s->is_mandaory[j] = 1;
+                    printf("%d subject was successfully mandated", j);
+                }
+            }
+        }
+    }
+}
 int myResult(const struct student *s)
 {
     if (s->subject_count <= 0)
@@ -100,7 +166,6 @@ int myResult(const struct student *s)
 
     free(temp);
     return sum;
-    
 }
 
 void myGradeFromTotal(struct student *s, int total)
@@ -420,7 +485,7 @@ int editMarks()
     printf("enter the name of the subject whose marks you want to edit...\n");
     fgets(targetSubject, sizeof(targetSubject), stdin);
     targetSubject[strcspn(targetSubject, "\n")] = '\0';
-    
+
     // Normalize target subject name (remove spaces, convert to lowercase)
     int j = 0;
     for (i = 0; targetSubject[i] != '\0'; i++)
@@ -446,17 +511,17 @@ int editMarks()
             fclose(fp1);
             continue;
         }
-        
+
         rollFound = 0;
         flag = 0;
         skip = 0;
-        
+
         while (fgets(line, sizeof(line), fp1))
         {
             editSubjectLen = 0;
             correctLen = 0;
             int k = 0;
-            
+
             if (flag == 0)
             {
                 // Check if this is the target roll number
@@ -468,7 +533,7 @@ int editMarks()
                     continue;
                 }
 
-                //this is used to copy the part of the file that is not part of the target student's record
+                // this is used to copy the part of the file that is not part of the target student's record
                 if (!skip && rollFound && strncmp(line, "------------------------------------", 36) != 0)
                 {
                     fputs(line, fp2);
@@ -485,14 +550,14 @@ int editMarks()
                     skip = 0;
                     continue;
                 }
-                
-                //parse subject lines when we're inside the target student's data
+
+                // parse subject lines when we're inside the target student's data
                 if (skip == 1)
                 {
                     // Extract subject name from the line (before the colon)
                     char lineSubject[100] = {0}; // this initializes every element of the array to 0...
                     int lineSubjIdx = 0;
-                    
+
                     while (line[k] != ':' && line[k] != '\0' && lineSubjIdx < 99)
                     {
                         if (!isspace(line[k]))
@@ -503,7 +568,7 @@ int editMarks()
                     }
                     lineSubject[lineSubjIdx] = '\0';
                     editSubjectLen = lineSubjIdx;
-                    
+
                     // Check if subject names match or not
                     if (editSubjectLen == subjectLen)
                     {
@@ -516,7 +581,7 @@ int editMarks()
                                 break;
                             }
                         }
-                        
+
                         if (match == 1)
                         {
                             printf("enter the edited marks: ");
@@ -528,7 +593,7 @@ int editMarks()
                             continue;
                         }
                     }
-                    
+
                     // If we reach here, this is not the subject we're looking for
                     fputs(line, fp2);
                 }
@@ -539,10 +604,10 @@ int editMarks()
                 fputs(line, fp2);
             }
         }
-        
+
         fclose(fp1);
         fclose(fp2);
-        
+
         if (flag == 1 && rollFound == 1)
         {
             remove(filename);
@@ -555,12 +620,12 @@ int editMarks()
             remove("temp.txt");
         }
     }
-    
+
     if (!rollFound)
     {
         printf("Student with roll number %d not found!\n", verifyRoll);
     }
-    
+
     return verifyRoll;
 }
 
@@ -599,7 +664,7 @@ int editGrade(int targetRoll)
         return 0;
     }
 
-    // step 2: recalc grade 
+    // step 2: recalc grade
     int marks[20], count = 0;
     int skip = 0;
 
@@ -667,7 +732,7 @@ int editGrade(int targetRoll)
     else
         updatedGrade = 'F';
 
-    // step 3: if grade same → update only 
+    // step 3: if grade same → update only
     if (oldGrade == updatedGrade)
     {
         snprintf(filename, sizeof(filename), "%c.txt", oldGrade);
@@ -696,7 +761,7 @@ int editGrade(int targetRoll)
         return 1;
     }
 
-    // step 4: move student to new grade file 
+    // step 4: move student to new grade file
     FILE *fpRemain = fopen("temp.txt", "w");
     FILE *fpBlock = fopen("temp2.txt", "w");
 
@@ -888,3 +953,4 @@ int main()
         }
     }
     return 0;
+}
